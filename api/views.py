@@ -63,4 +63,4 @@ def virtual_card(request):
     response_obj["Access-Control-Allow-Methods"] = "GET, OPTIONS"
     response_obj["Access-Control-Max-Age"] = "1000"
     response_obj["Access-Control-Allow-Headers"] = "X-Requested-With, Content-Type"
-    return JsonResponse({"result": "success"}) 
+    return response_obj 
