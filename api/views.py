@@ -15,6 +15,18 @@ def virtual_card(request):
     transaction_address = request.GET.get('transaction', 'NOT FOUND')
     user_wallet_address = request.GET.get('wallet', 'NOT FOUND')
     transaction_amount = request.GET.get('transaction_amount', 'NOT FOUND')
+
+    if transaction_address == 'NOT FOUND' or user_wallet_address == 'NOT FOUND' or transaction_amount == 'NOT FOUND': 
+            return JsonResponse({"result": "failure"})
+
+    try:
+        t_a = int(transaction_amount)
+        if int(t_a) > 700:
+            return JsonResponse({"result": "failure"})
+    except ValueError:
+        return JsonResponse({"result": "invalid argument"})
+
+
     print("transaction AMOUNT IS: ")
     print(transaction_amount)
 
@@ -32,7 +44,7 @@ def virtual_card(request):
       "limit_type": "CARD",
       "spend_controls": {
           "spend_limit": {
-              "amount": 700,
+              "amount": int(transaction_amount),
               "currency": "USD"
               },
           "spend_duration": "ONE_TIME",
