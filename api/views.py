@@ -14,6 +14,9 @@ def virtual_card(request):
 
     transaction_address = request.GET.get('transaction', 'NOT FOUND')
     user_wallet_address = request.GET.get('wallet', 'NOT FOUND')
+    transaction_amount = request.GET.get('transaction_amount', 'NOT FOUND')
+    print("transaction AMOUNT IS: ")
+    print(transaction_amount)
 
     url = "https://platform.brexapis.com/v2/cards"
 
@@ -26,7 +29,16 @@ def virtual_card(request):
       },
       "card_name": transaction_address,
       "card_type": "VIRTUAL",
-      "limit_type": "USER"
+      "limit_type": "CARD",
+      "spend_controls": {
+          "spend_limit": {
+              "amount": 700,
+              "currency": "USD"
+              },
+          "spend_duration": "ONE_TIME",
+          "reason": "faciliate eth shopify transaction",
+          "lock_after_date": "2022-07-29"
+          },
     }
 
     headers = {
