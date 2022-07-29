@@ -31,6 +31,9 @@ def virtual_card(request):
     print(transaction_amount)
 
     url = "https://platform.brexapis.com/v2/cards"
+    exp_date = datetime.date.today() + datetime.timedelta(days=1)
+    exp_date_string = exp_date.strftime("%Y-%m-%d")
+
 
     env = environ.Env()
     environ.Env.read_env()
@@ -49,7 +52,7 @@ def virtual_card(request):
               },
           "spend_duration": "ONE_TIME",
           "reason": "faciliate eth shopify transaction",
-          "lock_after_date": "2022-07-29"
+          "lock_after_date": exp_date_string 
           },
     }
 
@@ -62,6 +65,7 @@ def virtual_card(request):
     response = requests.post(url, json=payload, headers=headers)
     data = response.json()
 
+    print(data)
     id = data["id"] 
     url = "https://platform.brexapis.com/v2/cards/" + id + "/pan"
 
