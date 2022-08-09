@@ -4,6 +4,7 @@ from api.models import Transaction
 import requests
 import datetime
 import environ
+from web3 import Web3
 
 def virtual_card(request):
     # after verifying t_addr and u_w_addr are being sent and extracted by url arg get
@@ -14,21 +15,43 @@ def virtual_card(request):
 
     transaction_address = request.GET.get('transaction', 'NOT FOUND')
     user_wallet_address = request.GET.get('wallet', 'NOT FOUND')
-    transaction_amount = request.GET.get('transaction_amount', 'NOT FOUND')
 
-    if transaction_address == 'NOT FOUND' or user_wallet_address == 'NOT FOUND' or transaction_amount == 'NOT FOUND': 
+    if transaction_address == 'NOT FOUND' or user_wallet_address == 'NOT FOUND': 
             return JsonResponse({"result": "failure"})
 
+
+    url = "https://eth-mainnet.g.alchemy.com/v2/HkqW3tzpSLhcB0GVY47WPkRRXY42S9S-"
+    web3 = Web3(Web3.HTTPProvider(url))
+    network_transaction = web3.eth.get_transaction(transaction_address)
+
+   # check if network transaction sent eth to paar wallet
+    print(network_transaction.to)
+    print("0x953a9e6afed5f3835042b4f33d1cce81183adc62")
+    if str(network_transaction.to).lower() != "0x953a9e6afed5f3835042b4f33d1cce81183adc62":
+        # if paar wallet not receiver fail the request
+        return JsonResponse({"result": "invalid_transaction: paar wallet did not receive transaction"})
+
+  # grab value from network transaction and convert ETH to USD
+    eth = float(Web3.fromWei(network_transaction.value, 'ether'))
+    coinbase_url = "https://api.coinbase.com/v2/exchange-rates?currency=ETH"
+    res = requests.get(coinbase_url)
+    res_json = res.json()
+    eth_to_usd = float(res_json["data"]["rates"]["USD"])
+    usd_value = eth_to_usd * eth
+
+   # derive maximum value based on converted ETHtoUSD value + .05% ??'
+    adjusted_usd_value = 1.05 * usd_value
+    adjusted_cent_value = int(adjusted_usd_value * 100)
+
+    print("transaction AMOUNT IS: ")
+    print(adjusted_usd_value)
+
     try:
-        t_a = int(transaction_amount)
-        if int(t_a) > 700:
+        t_a = int(adjusted_cent_value)
+        if int(t_a) > 800:
             return JsonResponse({"result": "failure"})
     except ValueError:
         return JsonResponse({"result": "invalid argument"})
-
-
-    print("transaction AMOUNT IS: ")
-    print(transaction_amount)
 
     url = "https://platform.brexapis.com/v2/cards"
     exp_date = datetime.date.today() + datetime.timedelta(days=1)
@@ -47,7 +70,7 @@ def virtual_card(request):
       "limit_type": "CARD",
       "spend_controls": {
           "spend_limit": {
-              "amount": int(transaction_amount),
+              "amount": adjusted_cent_value,
               "currency": "USD"
               },
           "spend_duration": "ONE_TIME",
