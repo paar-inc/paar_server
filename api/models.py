@@ -6,3 +6,4 @@ class Transaction(models.Model):
     user_wallet_address = models.CharField(max_length=100)
     transaction_address = models.CharField(max_length=100)
     card_brex_id = models.CharField(max_length=200)
+    email = models.EmailField(max_length=254)

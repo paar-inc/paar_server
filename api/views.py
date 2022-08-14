@@ -15,6 +15,7 @@ def virtual_card(request):
 
     transaction_address = request.GET.get('transaction', 'NOT FOUND')
     user_wallet_address = request.GET.get('wallet', 'NOT FOUND')
+    email = request.GET.get('email', 'NOT FOUND')
 
     if transaction_address == 'NOT FOUND' or user_wallet_address == 'NOT FOUND': 
             return JsonResponse({"result": "failure"})
@@ -26,7 +27,6 @@ def virtual_card(request):
 
    # check if network transaction sent eth to paar wallet
     print(network_transaction.to)
-    print("0x953a9e6afed5f3835042b4f33d1cce81183adc62")
     if str(network_transaction.to).lower() != "0x953a9e6afed5f3835042b4f33d1cce81183adc62":
         # if paar wallet not receiver fail the request
         return JsonResponse({"result": "invalid_transaction: paar wallet did not receive transaction"})
@@ -48,8 +48,8 @@ def virtual_card(request):
 
     try:
         t_a = int(adjusted_cent_value)
-        if int(t_a) > 800:
-            return JsonResponse({"result": "failure"})
+        if int(t_a) > 3000:
+            return JsonResponse({"result": "exceeds_safety_limit"})
     except ValueError:
         return JsonResponse({"result": "invalid argument"})
 
@@ -99,7 +99,7 @@ def virtual_card(request):
     data = response.json()
 
     print(data)
-    new_transaction = Transaction(user_wallet_address=user_wallet_address, transaction_address=transaction_address, card_brex_id=id)
+    new_transaction = Transaction(user_wallet_address=user_wallet_address, transaction_address=transaction_address, card_brex_id=id, email=email)
     new_transaction.save()
 
     month = data["expiration_date"]["month"]
